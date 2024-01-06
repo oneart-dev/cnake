@@ -1,6 +1,6 @@
 # (C)nake in C with Raylib
 
-[Screenshot](cnake.png)
+![Screenshot](cnake.png)
 
 Simple snake game.
 WORK IN PROGRESS.
