@@ -1,1 +1,6 @@
 main
+.DS_Store
+raylib5/
+raylib-5.0/
+main.dSYM/
+
