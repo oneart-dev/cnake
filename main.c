@@ -1,7 +1,5 @@
 #include "raylib5/raylib.h"
-#include "raylib5/raymath.h"
 #include "snake.h"
-#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +25,17 @@ void DrawTopStatusBar(int vsw, int vsh) {
   DrawText(text2, lrPadding, tbPadding, fontSize2, WHITE);
 }
 
+void gameOverScreen(int vsw, int vsh) {
+  const char *text = "Game Over";
+  int fontSize = 40;
+  int textWidth = MeasureText(text, fontSize);
+  DrawText("Game Over", vsw / 2 - textWidth / 2, 150, fontSize, RED);
+}
+
+typedef enum { GAME_PLAYING, GAME_OVER } GameState;
+
+GameState gameState = GAME_PLAYING;
+
 int main(void) {
   const int virtualScreenWidth = 1600;
   const int vsw = virtualScreenWidth;
@@ -51,10 +60,6 @@ int main(void) {
 
   srand(time(NULL));
 
-  // Triangle triangles[rows * cols];
-  // triangles[0] = randomTriangle(vsw, vsh);
-  // int triangleCount = 1;
-
   float moveInterval = 0.5f; // Move every 0.5 seconds
   double lastMoveTime = GetTime();
   int size = 0;
@@ -76,21 +81,18 @@ int main(void) {
     }
 
     double currentTime = GetTime();
-    if (currentTime - lastMoveTime >= moveInterval) {
-
-      printf("next move\n");
-      printf("currentPosition: %d, %d\n", head->position.x, head->position.y);
+    if (currentTime - lastMoveTime >= moveInterval &&
+        gameState == GAME_PLAYING) {
 
       Point nextPosition = {
           wrapCoordinate(head->position.x + directions[direction].x, cols),
           wrapCoordinate(head->position.y + directions[direction].y, rows),
       };
 
-      printf("nextPosition: %d, %d\n", nextPosition.x, nextPosition.y);
-
       size++;
       if (!addSegment(&head, nextPosition.x, nextPosition.y)) {
         printf("Game over!\n");
+        gameState = GAME_OVER;
         size = 0;
         head = createSnake(rand() % cols, rand() % rows);
       }
@@ -100,6 +102,15 @@ int main(void) {
 
       printf("newPosition: %d, %d\n", head->position.x, head->position.y);
       lastMoveTime = currentTime;
+    }
+
+    if (gameState == GAME_OVER) {
+      gameOverScreen(vsw, vsh);
+    }
+
+    if (IsKeyPressed(KEY_R)) {
+      head = createSnake(rand() % cols, rand() % rows);
+      gameState = GAME_PLAYING;
     }
 
     for (int i = 0; i < rows; ++i) {
@@ -117,20 +128,6 @@ int main(void) {
       DrawRectangle(x, y, cellSize, cellSize, GREEN);
     }
 
-    if (IsKeyPressed(KEY_R)) {
-      head = createSnake(rand() % cols, rand() % rows);
-    }
-
-    // if (IsKeyPressed(KEY_R)) {
-    //   triangles[triangleCount] = randomTriangle(vsw, vsh);
-    //   triangleCount++;
-    //   printf("triangleCount: %d\n", triangleCount);
-    // }
-
-    // for (int i = 0; i < triangleCount; i++) {
-    //   Triangle it = triangles[i];
-    //   DrawTriangle(it.v1, it.v2, it.v3, it.color);
-    // }
     EndTextureMode();
 
     BeginDrawing();
@@ -140,9 +137,6 @@ int main(void) {
     Vector2 position = {(GetScreenWidth() - virtualScreenWidth * scale) * 0.5f,
                         (GetScreenHeight() - virtualScreenHeight * scale) *
                             0.5f};
-
-    // Draw the scaled virtual screen
-    // DrawTextureEx(target.texture, position, 0.0f, scale, WHITE);
 
     Rectangle sourceRec = {0, 0, (float)target.texture.width,
                            (float)-target.texture.height};
